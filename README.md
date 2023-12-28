@@ -40,18 +40,18 @@ XXX.XXX.XX.XX4	node4
 Run the following commands in your shell on each computer to update and upgrade all packages in that system.
 
 ```
-$ sudo apt update
-$ sudo apt upgrade
+sudo apt update
+sudo apt upgrade
 ```
 
 ## Setup SSH
 Seting up SSH is pretty simple. You just run the following command:
 ```
-$ sudo apt install openssh-server openssh-client
+sudo apt install openssh-server openssh-client
 ```
 Then, to test whether it was installed correctly, we can attempt to SSH into another computer in the cluster like so:
 ```
-$ ssh <hostname>			 (<hostname> would be the alias of another cluster. For example, node1 if you’re on node0) 
+ssh <hostname>			 (<hostname> would be the alias of another cluster. For example, node1 if you’re on node0) 
 ```
 If SSH is succesful, you should know be in a remote shell connected to the host with name `<hostname>`. If you want to learn more about SSH, visit this [page](https://ubuntu.com/server/docs/service-openssh).
 
@@ -63,56 +63,56 @@ Installing Munge is pretty straightforward once you figure out what you're doing
 ### Controller node
 First, run the following command to install the munge packages.
 ```
-$ sudo apt install munge libmunge2 libmunge-dev
+sudo apt install munge libmunge2 libmunge-dev
 ```
 This should install successfully as long as you're connected to the internet. To test your installation, you can run the following command:
 ```
-$ munge -n | unmunge | grep STATUS
+munge -n | unmunge | grep STATUS
 ```
 You should see something like `STATUS: SUCCESS`. Now, you have Munge correctly installed and there should be a Munge key at `/etc/munge/munge.key'. If you don't see one, then you should be able to create one manually by running the following command:
 ```
-$ sudo /usr/sbin/mungekey
+sudo /usr/sbin/mungekey
 ```
 Now, we have to ensure all of the munge files have the correct permissions. This just entails giving the munge user ownership over all the munge files. You don't have to create the munge user manually since it should have been created by munge when we installed the packages above. In fact, we recommend saving yourself the trouble and not creating the user yourself. We had a lot of troubles stem from trying to create it ourselves.
 
 To Setup the correct permissions, use the following commands:
 ```
-$ sudo chown -R munge: /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/
-$ sudo chmod 0700 /etc/munge/ /var/log/munge/ /var/lib/munge/
-$ sudo chmod 0755 /run/munge/
-$ sudo chmod 0700 /etc/munge/munge.key
-$ sudo chown -R munge: /etc/munge/munge.key
+sudo chown -R munge: /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/
+sudo chmod 0700 /etc/munge/ /var/log/munge/ /var/lib/munge/
+sudo chmod 0755 /run/munge/
+sudo chmod 0700 /etc/munge/munge.key
+sudo chown -R munge: /etc/munge/munge.key
 ```
 
 Next, we need to restart the munge service and configure it to run at startup. We do that like so:
 ```
-$ systemctl enable munge
-$ systemctl restart munge
+systemctl enable munge
+systemctl restart munge
 ```
 You can investigate munge service errors with:
 ```
-$ systemctl status munge
+systemctl status munge
 ```
 That's it! Now, you can go ahead and Setup your worker nodes. Also, for convenience you can now save your `munge.key` located at `/etc/munge/' to an easily accessible location. You will need to copy that key over to the other nodes in the cluster when setting them up. We go over that in detail next.
 
 ### Worker nodes
 For each worker node we follow the same procedure. Similar to the controller node, you first install munge, like so:
 ```
-$ sudo apt install munge libmunge2 libmunge-dev
+sudo apt install munge libmunge2 libmunge-dev
 ```
 We check if munge is installed correctly, like so:
 ```
-$ munge -n | unmunge | grep STATUS
+munge -n | unmunge | grep STATUS
 ```
 Again, you should see something like `STATUS: SUCCESS`. Now, munge is correctly installed on this node, however we still need to copy our controller node's key to this node. To do that, simply replace the worker node's `munge.key` file located at `/etc/munge/' with the controller node's `munge.key` file. The most straightforward way we found to do this was to put the controller node's 'munge.key' onto a USB drive and then plug the USB drive into the worker node. 
 
 Once you have swapped out `munge.key`, we need to make sure munge's permissions are correct on this worker node. We do that like so:
 ```
-$ sudo chown -R munge: /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/
-$ sudo chmod 0700 /etc/munge/ /var/log/munge/ /var/lib/munge/
-$ sudo chmod 0755 /run/munge/
-$ sudo chmod 0700 /etc/munge/munge.key
-$ sudo chown -R munge: /etc/munge/munge.key
+sudo chown -R munge: /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/
+sudo chmod 0700 /etc/munge/ /var/log/munge/ /var/lib/munge/
+sudo chmod 0755 /run/munge/
+sudo chmod 0700 /etc/munge/munge.key
+sudo chown -R munge: /etc/munge/munge.key
 ```
 
 Next, we start the munge service and configure it to start at startup.
