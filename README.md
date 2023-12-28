@@ -86,8 +86,8 @@ sudo chown -R munge: /etc/munge/munge.key
 
 Next, we need to restart the munge service and configure it to run at startup. We do that like so:
 ```
-systemctl enable munge
-systemctl restart munge
+sudo systemctl enable munge
+sudo systemctl restart munge
 ```
 You can investigate munge service errors with:
 ```
@@ -117,18 +117,18 @@ sudo chown -R munge: /etc/munge/munge.key
 
 Next, we start the munge service and configure it to start at startup.
 ```
-$ systemctl enable munge
-$ systemctl restart munge
+sudo systemctl enable munge
+sudo systemctl restart munge
 ```
 
 Again, you can investigate munge service errors with:
 ```
-$ systemctl status munge
+sudo systemctl status munge
 ```
 
 Now, we can test the munge connection to the controller node, like so:
 ```
-$ munge -n | ssh <CONTROLLER_NODE> unmunge 
+munge -n | ssh sprint1 unmunge 
 ```
 Make sure to replace `<CONTROLLER_NODE>` with host alias of your controller node. If this is successful, you should see the munge status of the controller node. If you get an error, try restarting the munge service on the controller node.
 
@@ -136,16 +136,16 @@ Make sure to replace `<CONTROLLER_NODE>` with host alias of your controller node
 The process to install and Setup Slurm is almost the same in the controller node and the worker nodes. The only significant difference is which service we have to start and enable. 
 First, on all nodes, install the required packages with:
 ```
-$ sudo apt install slurm-wlm
+sudo apt install slurm-wlm
 ```
 
 ### Controller node
 To configure Slurm on your controller node do the following. 
 
 Use slurm's handy configuration file generator located at `/usr/share/doc/slurmctld/slurm-wlm-configurator.html` to create your configuration file. You can open the configurator file with your browser. 
-> Slurm configuration files are a complicated topic and what values you have to fill in is specific to your machines. If you want to learn more about it, go [here](https://slurm.schedmd.com/slurm.conf.html).
+> Slurm configuration files are a complicated topic and what values you have to fill in are specific to your machines. If you want to learn more about it, go [here](https://slurm.schedmd.com/slurm.conf.html).
 
-You don't have to fill out all of the fields in the configuration tool since a lot of them can be left to their defaults. The following fields are the once we had to manually configure:
+You don't have to fill out all of the fields in the configuration tool since many of them can be left to their defaults. The following fields are the ones we had to manually configure:
 - ClusterName: `<YOUR-CLUSTER-NAME>`
 - SlurmctldHost: `<CONTROLLER-NODE-NAME>`
 - NodeName: `<WORKER-NODE-NAME>`[1-4] (this would mean that you have four worker nodes called `<WORKER-NODE-NAME>1`, `<WORKER-NODE-NAME>2`, `<WORKER-NODE-NAME>3`, `<WORKER-NODE-NAME>4`)
@@ -154,52 +154,52 @@ You don't have to fill out all of the fields in the configuration tool since a l
 
 Once you press the `submit` button at the bottom of the configuration tool your configuration file text will appear in your browser. Copy this text into a new /etc/slurm/slurm.conf file and save.
 ```
-$ sudo nano /etc/slurm/slurm.conf
+sudo vim /etc/slurm/slurm.conf
 ```
 At this point you should copy the text from your created slurm.conf to each worker node's /etc/slurm/slurm.conf. We found the best way to do this was to copy our created slurm.conf file to a thumbdrive, then use the previous command on each worker node to create the slurm.conf file and then copy the text from our thumbdrive slurm.conf and save.
 
 Now, we have to start the slurm controller node service and configure it to start at startup, like so: 
 ```
-$ systemctl enable slurmctld
-$ systemctl restart slurmctld
+systemctl enable slurmctld
+systemctl restart slurmctld
 ```
 
 You can now check your slurm installation is runnning and your cluster is Setup with the following commands:
 ```
-$ systemctl status slurmctld # returns status of slurm service
-$ sinfo		# returns cluster information
+systemctl status slurmctld # returns status of slurm service
+sinfo		# returns cluster information
 ```
 
 Once you have your worker nodes Setup, you can also check the cluster is correctly Setup by running:
 ```
-$ srun hostname
+srun hostname
 ```
 Where `<NUMBER-OF-NODES>` is the number of worker nodes that are currently Setup. If you followed all of the steps correctly, this should return the name of all of your nodes.
 
 ### Worker nodes
 We follow a similar procedure to the controller node for each worker node. Be sure to copy the text from your created slurm.conf to each worker node's /etc/slurm/slurm.conf. We found the best way to do this was to copy our created slurm.conf file to a thumbdrive, then use the following command on each worker node to create the slurm.conf file and then copy the text from our thumbdrive slurm.conf and save.
 ```
-$ sudo nano /etc/slurm/slurm.conf
+sudo vim /etc/slurm/slurm.conf
 ```
 
 Now, we start the slurm worker node service and configure it to start at startup.
 ```
-$ systemctl enable slurmd
-$ systemctl restart slurmd
+systemctl enable slurmd
+systemctl restart slurmd
 ```
 
 Then, we can verify slurm is Setup correctly and running like so:
 ```
-$ systemctl status slurmd
+systemctl status slurmd
 ```
 
 As long as you got no errors, your slurm worker node should now be setup. You can check that it is running correctly by using the `sinfo` or `srun` commands on your controller node.
 ```
-$ srun hostname
+srun hostname
 ```
 You can investigate errors in more detail by looking in the slurm log file:
 ```
-$ sudo nano /var/log/slurm.slurmd.log
+sudo vim /var/log/slurm.slurmd.log
 ```
 ## Other Resources
 These are some resources we found helpful along the way. 
